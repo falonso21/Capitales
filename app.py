@@ -277,7 +277,9 @@ def obtener_paises_filtrados(continente):
     """Devuelve el subconjunto de PAISES_CAPITALES segun el continente."""
     if continente == "Todos":
         return PAISES_CAPITALES
-    paises_cont = CONTINENTES.get(continente, [])
+    # Quitar emoji del nombre de continente si lo tiene
+    nombre_limpio = continente.split(" ", 1)[-1] if " " in continente else continente
+    paises_cont = CONTINENTES.get(nombre_limpio, [])
     return {p: c for p, c in PAISES_CAPITALES.items() if p in paises_cont}
 
 
@@ -428,6 +430,46 @@ def calcular_puntuacion(aciertos, pista, errores):
 # --- Configuracion de pagina ---
 st.set_page_config(page_title="Quiz de Capitales", layout="centered")
 
+# --- CSS personalizado ---
+st.markdown("""
+<style>
+/* Tarjeta de pregunta */
+[data-testid="stHeadingWithActionElements"] h2 {
+    background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
+    border-radius: 12px;
+    padding: 1rem 1.5rem;
+    border-left: 4px solid #F97316;
+}
+
+/* Barra de timer roja cuando queda poco */
+[data-testid="stProgress"] > div > div > div {
+    transition: background-color 0.3s ease;
+}
+
+/* Metricas estilizadas */
+[data-testid="stMetric"] {
+    background: #FFFBEB;
+    border-radius: 10px;
+    padding: 0.8rem;
+    box-shadow: 0 1px 3px rgba(120,53,15,0.1);
+    border: 1px solid #FDE68A;
+}
+
+/* Sidebar titulo */
+[data-testid="stSidebar"] [data-testid="stHeadingWithActionElements"] h2 {
+    background: none;
+    border-left: none;
+    padding: 0;
+    font-size: 1.3rem;
+    color: #EA580C;
+}
+
+[data-testid="stSidebar"] hr {
+    border-color: #FDE68A;
+}
+</style>
+""", unsafe_allow_html=True)
+
 # --- Inicializar estado ---
 if "juego_activo" not in st.session_state:
     st.session_state.juego_activo = False
@@ -465,11 +507,11 @@ if "juego_activo" not in st.session_state:
     st.session_state.nombres_configurados = False
 
 # --- Titulo ---
-st.title("Quiz de Capitales del Mundo")
+st.title("\U0001f30d Quiz de Capitales del Mundo")
 
 # --- Barra lateral ---
 with st.sidebar:
-    st.header("Configuracion")
+    st.header("\u2699\ufe0f Configuracion")
 
     modo = st.radio(
         "Modo de juego:",
@@ -478,7 +520,7 @@ with st.sidebar:
 
     continente = st.selectbox(
         "Continente:",
-        ["Todos", "Europa", "Asia", "Africa", "America", "Oceania"],
+        ["Todos", "\U0001f30d Europa", "\U0001f30f Asia", "\U0001f30d Africa", "\U0001f30e America", "\U0001f30f Oceania"],
     )
 
     jugadores = st.radio(
@@ -491,11 +533,11 @@ with st.sidebar:
         ["Modo libre", "50 preguntas"],
     )
 
-    temporizador = st.checkbox("Activar temporizador (10s)")
+    temporizador = st.checkbox("\u23f1\ufe0f Activar temporizador (10s)")
 
     st.markdown("---")
 
-    if st.button("Comenzar partida", type="primary", use_container_width=True):
+    if st.button("\U0001f680 Comenzar partida", type="primary", use_container_width=True):
         st.session_state.modo = "capital" if "capital" in modo else "pais"
         st.session_state.sub_modo = "50" if "50" in sub_modo else "libre"
         st.session_state.continente = continente
@@ -506,7 +548,7 @@ with st.sidebar:
         st.rerun()
 
     if st.session_state.juego_activo and not st.session_state.quiz_terminado:
-        if st.button("Terminar partida", use_container_width=True):
+        if st.button("\U0001f6d1 Terminar partida", use_container_width=True):
             if st.session_state.sub_modo == "50" and st.session_state.total > 0:
                 st.session_state.quiz_terminado = True
             else:
@@ -536,7 +578,7 @@ if (st.session_state.juego_activo
 if not st.session_state.juego_activo:
     st.markdown(
         """
-    ### Bienvenido al Quiz de Capitales
+    ### \U0001f44b Bienvenido al Quiz de Capitales
 
     Pon a prueba tus conocimientos sobre las capitales del mundo.
 
@@ -575,7 +617,7 @@ elif st.session_state.multijugador and not st.session_state.nombres_configurados
 
 # Modo repaso de errores
 elif st.session_state.modo_repaso:
-    st.subheader("Repaso de errores")
+    st.subheader("\U0001f4dd Repaso de errores")
 
     idx = st.session_state.repaso_indice
     total_repaso = len(st.session_state.repaso_preguntas)
@@ -606,7 +648,7 @@ elif st.session_state.modo_repaso:
                 correcta = st.session_state.respuesta_correcta
                 st.session_state.feedback = (
                     "error",
-                    f"Tiempo agotado! La respuesta correcta es: {correcta}",
+                    f"\u23f0 Tiempo agotado! La respuesta correcta es: {correcta}",
                 )
                 st.session_state.respondido = True
                 st.rerun()
@@ -614,35 +656,35 @@ elif st.session_state.modo_repaso:
         if not st.session_state.respondido:
             # Pista en repaso
             if not st.session_state.pista_mostrada:
-                if st.button("Pista", key="pista_repaso"):
+                if st.button("\U0001f4a1 Pista", key="pista_repaso"):
                     st.session_state.pista_usada = True
                     st.session_state.pista_mostrada = True
                     st.rerun()
 
             if st.session_state.pista_mostrada:
                 primera = st.session_state.respuesta_correcta[0]
-                st.info(f"La respuesta empieza por: **{primera}**")
+                st.info(f"\U0001f4a1 La respuesta empieza por: **{primera}**")
 
             if st.session_state.temporizador:
                 respuesta = st.text_input("Tu respuesta:", placeholder="Escribe aqui...",
                                           key=f"repaso_{idx}")
-                submitted = st.button("Comprobar", type="primary", key=f"btn_repaso_{idx}")
+                submitted = st.button("\u2714\ufe0f Comprobar", type="primary", key=f"btn_repaso_{idx}")
             else:
                 with st.form(key=f"form_repaso_{idx}"):
                     respuesta = st.text_input("Tu respuesta:", placeholder="Escribe aqui...")
-                    submitted = st.form_submit_button("Comprobar", type="primary")
+                    submitted = st.form_submit_button("\u2714\ufe0f Comprobar", type="primary")
 
             if submitted and respuesta.strip():
                 correcta = st.session_state.respuesta_correcta
                 if normalizar(respuesta) == normalizar(correcta):
                     st.session_state.feedback = (
                         "success",
-                        f"Correcto! La respuesta es: {correcta}",
+                        f"\u2705 Correcto! La respuesta es: {correcta}",
                     )
                 else:
                     st.session_state.feedback = (
                         "error",
-                        f"Incorrecto. La respuesta correcta es: {correcta}",
+                        f"\u274c Incorrecto. La respuesta correcta es: {correcta}",
                     )
                 st.session_state.respondido = True
                 st.rerun()
@@ -654,7 +696,7 @@ elif st.session_state.modo_repaso:
             else:
                 st.error(msg)
 
-            if st.button("Siguiente", type="primary", key="sig_repaso"):
+            if st.button("\u27a1\ufe0f Siguiente", type="primary", key="sig_repaso"):
                 st.session_state.repaso_indice += 1
                 if st.session_state.repaso_indice < total_repaso:
                     nueva_pregunta_repaso()
@@ -662,7 +704,7 @@ elif st.session_state.modo_repaso:
 
 # Pantalla de resultados
 elif st.session_state.quiz_terminado:
-    st.header("Partida terminada")
+    st.header("\U0001f3c6 Partida terminada")
     st.markdown("---")
 
     if st.session_state.multijugador:
@@ -693,11 +735,11 @@ elif st.session_state.quiz_terminado:
         st.markdown("---")
 
         if p1 > p2:
-            st.success(f"Ganador: {j1['nombre']} con {p1:.1f} puntos!")
+            st.success(f"\U0001f3c6 Ganador: {j1['nombre']} con {p1:.1f} puntos!")
         elif p2 > p1:
-            st.success(f"Ganador: {j2['nombre']} con {p2:.1f} puntos!")
+            st.success(f"\U0001f3c6 Ganador: {j2['nombre']} con {p2:.1f} puntos!")
         else:
-            st.info("Empate!")
+            st.info("\U0001f91d Empate!")
 
         # Repaso de errores multijugador: combinar errores de ambos
         todos_errores = j1["errores_lista"] + j2["errores_lista"]
@@ -763,7 +805,7 @@ else:
     # Mostrar turno en multijugador
     if st.session_state.multijugador:
         j = get_jugador_actual()
-        st.info(f"Turno de **{j['nombre']}**")
+        st.info(f"\U0001f3af Turno de **{j['nombre']}**")
 
         # Marcadores de ambos jugadores
         j1 = st.session_state.jugadores[0]
@@ -774,11 +816,11 @@ else:
         mc1, mc2 = st.columns(2)
         mc1.caption(
             f"**{j1['nombre']}**: {p1:.1f} pts | "
-            f"Racha: {j1['racha']} (Max: {j1['racha_max']})"
+            f"\U0001f525 Racha: {j1['racha']} (Max: {j1['racha_max']})"
         )
         mc2.caption(
             f"**{j2['nombre']}**: {p2:.1f} pts | "
-            f"Racha: {j2['racha']} (Max: {j2['racha_max']})"
+            f"\U0001f525 Racha: {j2['racha']} (Max: {j2['racha_max']})"
         )
 
     # Marcador individual
@@ -803,7 +845,7 @@ else:
             f"Puntos: {punt:.1f}  |  "
             f"Aciertos: {aciertos}  |  Con pista: {pista_count}  |  "
             f"Errores: {errores}  |  "
-            f"Racha: {racha} (Max: {racha_max})"
+            f"\U0001f525 Racha: {racha} (Max: {racha_max})"
         )
         if caption_text:
             caption_text += f"  |  {stats}"
@@ -832,7 +874,7 @@ else:
             correcta = st.session_state.respuesta_correcta
             st.session_state.feedback = (
                 "error",
-                f"Tiempo agotado! La respuesta correcta es: {correcta}",
+                f"\u23f0 Tiempo agotado! La respuesta correcta es: {correcta}",
             )
             if not st.session_state.modo_repaso:
                 registrar_error(st.session_state.pregunta, correcta)
@@ -844,14 +886,14 @@ else:
     if not st.session_state.respondido:
         # Boton de pista (antes del formulario)
         if not st.session_state.pista_mostrada:
-            if st.button("Pista", key="pista_btn"):
+            if st.button("\U0001f4a1 Pista", key="pista_btn"):
                 st.session_state.pista_usada = True
                 st.session_state.pista_mostrada = True
                 st.rerun()
 
         if st.session_state.pista_mostrada:
             primera = st.session_state.respuesta_correcta[0]
-            st.info(f"La respuesta empieza por: **{primera}**")
+            st.info(f"\U0001f4a1 La respuesta empieza por: **{primera}**")
 
         if st.session_state.temporizador:
             # Sin form para que autorefresh funcione
@@ -859,13 +901,13 @@ else:
                 "Tu respuesta:", placeholder="Escribe aqui...",
                 key=f"resp_{st.session_state.total}_{st.session_state.pregunta}"
             )
-            submitted = st.button("Comprobar", type="primary",
+            submitted = st.button("\u2714\ufe0f Comprobar", type="primary",
                                   key=f"btn_{st.session_state.total}_{st.session_state.pregunta}")
         else:
             # Con form para poder usar Enter
             with st.form(key=f"form_{st.session_state.total}_{st.session_state.pregunta}"):
                 respuesta = st.text_input("Tu respuesta:", placeholder="Escribe aqui...")
-                submitted = st.form_submit_button("Comprobar", type="primary")
+                submitted = st.form_submit_button("\u2714\ufe0f Comprobar", type="primary")
 
         if submitted:
             if respuesta.strip():
@@ -873,13 +915,13 @@ else:
                 if normalizar(respuesta) == normalizar(correcta):
                     st.session_state.feedback = (
                         "success",
-                        f"Correcto! La respuesta es: {correcta}",
+                        f"\u2705 Correcto! La respuesta es: {correcta}",
                     )
                     registrar_acierto(con_pista=st.session_state.pista_usada)
                 else:
                     st.session_state.feedback = (
                         "error",
-                        f"Incorrecto. La respuesta correcta es: {correcta}",
+                        f"\u274c Incorrecto. La respuesta correcta es: {correcta}",
                     )
                     registrar_error(st.session_state.pregunta, correcta)
                 st.session_state.total += 1
@@ -902,7 +944,7 @@ else:
                 st.session_state.quiz_terminado = True
                 st.rerun()
         else:
-            if st.button("Siguiente", type="primary"):
+            if st.button("\u27a1\ufe0f Siguiente", type="primary"):
                 # Cambiar turno en multijugador
                 if st.session_state.multijugador:
                     st.session_state.jugador_actual = 1 - st.session_state.jugador_actual
