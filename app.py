@@ -549,7 +549,7 @@ with st.sidebar:
 
     if st.session_state.juego_activo and not st.session_state.quiz_terminado:
         if st.button("\U0001f6d1 Terminar partida", use_container_width=True):
-            if st.session_state.sub_modo == "50" and st.session_state.total > 0:
+            if st.session_state.total > 0:
                 st.session_state.quiz_terminado = True
             else:
                 st.session_state.juego_activo = False
@@ -592,7 +592,7 @@ if not st.session_state.juego_activo:
 
     **Novedades:**
     - **Filtro por continente**: Practica con paises de un continente concreto
-    - **Temporizador**: 30 segundos para responder cada pregunta
+    - **Temporizador**: 10 segundos para responder cada pregunta
     - **Pistas**: Usa una pista (vale medio punto) si necesitas ayuda
     - **Racha**: Lleva la cuenta de tus respuestas consecutivas correctas
     - **Multijugador**: Juega con un amigo por turnos
@@ -744,6 +744,9 @@ elif st.session_state.quiz_terminado:
         # Repaso de errores multijugador: combinar errores de ambos
         todos_errores = j1["errores_lista"] + j2["errores_lista"]
         if todos_errores:
+            with st.expander(f"📋 Ver fallos ({len(todos_errores)})"):
+                for pregunta, correcta in todos_errores:
+                    st.markdown(f"- **{pregunta}** → {correcta}")
             if st.button("Repasar errores", type="secondary"):
                 # Eliminar duplicados manteniendo orden
                 vistos = set()
@@ -787,8 +790,11 @@ elif st.session_state.quiz_terminado:
         else:
             st.error("Te queda mucho por aprender. Sigue practicando!")
 
-        # Boton de repaso de errores
+        # Desplegable y boton de repaso de errores
         if st.session_state.errores_lista:
+            with st.expander(f"📋 Ver fallos ({len(st.session_state.errores_lista)})"):
+                for pregunta, correcta in st.session_state.errores_lista:
+                    st.markdown(f"- **{pregunta}** → {correcta}")
             if st.button("Repasar errores", type="secondary"):
                 st.session_state.repaso_preguntas = list(st.session_state.errores_lista)
                 st.session_state.repaso_indice = 0
