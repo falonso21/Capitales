@@ -538,7 +538,7 @@ with st.sidebar:
     st.markdown("---")
 
     if st.button("\U0001f680 Comenzar partida", type="primary", use_container_width=True):
-        st.session_state.modo = "capital" if "capital" in modo else "pais"
+        st.session_state.modo = "capital" if modo.startswith("Adivinar la capital") else "pais"
         st.session_state.sub_modo = "50" if "50" in sub_modo else "libre"
         st.session_state.continente = continente
         st.session_state.multijugador = jugadores == "2 jugadores"
