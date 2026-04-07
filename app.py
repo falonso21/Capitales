@@ -342,7 +342,7 @@ def nueva_pregunta_repaso():
         st.session_state.modo_repaso = False
         return
 
-    pregunta, respuesta = st.session_state.repaso_preguntas[st.session_state.repaso_indice]
+    pregunta, respuesta, *_ = st.session_state.repaso_preguntas[st.session_state.repaso_indice]
     st.session_state.pregunta = pregunta
     st.session_state.respuesta_correcta = respuesta
     st.session_state.respondido = False
@@ -375,17 +375,17 @@ def registrar_acierto(con_pista=False):
             st.session_state.racha_maxima = st.session_state.racha
 
 
-def registrar_error(pregunta, respuesta_correcta):
+def registrar_error(pregunta, respuesta_correcta, respuesta_usuario=""):
     """Registra un error para el jugador actual."""
     if st.session_state.multijugador:
         j = get_jugador_actual()
         j["errores"] += 1
         j["racha"] = 0
-        j["errores_lista"].append((pregunta, respuesta_correcta))
+        j["errores_lista"].append((pregunta, respuesta_correcta, respuesta_usuario))
     else:
         st.session_state.errores += 1
         st.session_state.racha = 0
-        st.session_state.errores_lista.append((pregunta, respuesta_correcta))
+        st.session_state.errores_lista.append((pregunta, respuesta_correcta, respuesta_usuario))
 
 
 def iniciar_juego():
@@ -745,8 +745,8 @@ elif st.session_state.quiz_terminado:
         todos_errores = j1["errores_lista"] + j2["errores_lista"]
         if todos_errores:
             with st.expander(f"📋 Ver fallos ({len(todos_errores)})"):
-                for pregunta, correcta in todos_errores:
-                    st.markdown(f"- **{pregunta}** → {correcta}")
+                for pregunta, correcta, usuario in todos_errores:
+                    st.markdown(f"- **{pregunta}**: ~~{usuario}~~ → {correcta}")
             if st.button("Repasar errores", type="secondary"):
                 # Eliminar duplicados manteniendo orden
                 vistos = set()
@@ -793,8 +793,8 @@ elif st.session_state.quiz_terminado:
         # Desplegable y boton de repaso de errores
         if st.session_state.errores_lista:
             with st.expander(f"📋 Ver fallos ({len(st.session_state.errores_lista)})"):
-                for pregunta, correcta in st.session_state.errores_lista:
-                    st.markdown(f"- **{pregunta}** → {correcta}")
+                for pregunta, correcta, usuario in st.session_state.errores_lista:
+                    st.markdown(f"- **{pregunta}**: ~~{usuario}~~ → {correcta}")
             if st.button("Repasar errores", type="secondary"):
                 st.session_state.repaso_preguntas = list(st.session_state.errores_lista)
                 st.session_state.repaso_indice = 0
@@ -883,7 +883,7 @@ else:
                 f"\u23f0 Tiempo agotado! La respuesta correcta es: {correcta}",
             )
             if not st.session_state.modo_repaso:
-                registrar_error(st.session_state.pregunta, correcta)
+                registrar_error(st.session_state.pregunta, correcta, "⏰ Tiempo agotado")
                 st.session_state.total += 1
             st.session_state.respondido = True
             st.rerun()
@@ -929,7 +929,7 @@ else:
                         "error",
                         f"\u274c Incorrecto. La respuesta correcta es: {correcta}",
                     )
-                    registrar_error(st.session_state.pregunta, correcta)
+                    registrar_error(st.session_state.pregunta, correcta, respuesta.strip())
                 st.session_state.total += 1
                 st.session_state.respondido = True
                 st.rerun()
